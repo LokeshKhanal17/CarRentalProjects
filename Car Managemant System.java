@@ -2,9 +2,6 @@ package CarRentalProjects;
 //Simple Car Management System That Reflects the Pillers of OOP.
 import java.util.*;
 import java.time.LocalDate;
-import javax.swing.plaf.synth.SynthStyle;
-
-import javafx.scene.paint.PhongMaterial;
 
 /**
  * Car Managemant System
@@ -16,24 +13,19 @@ class Car_Managemant_System {
         System.out.println("1. Employee \n2.Customer\n3.Exit ");
         Scanner src = new Scanner(System.in);
         int input = src.nextInt();
-        //if user is employee propmt with the screen that employee can see and perform task.
-        //if user is customer propmt with the screen that customer can see and perform task.
-        
-        // while(input != 1 || input!= 2 || input!= 3){
-        //     System.out.println("Please Enter Valid Input");
-        //     input = src.nextInt();
-        // }
         switch (input) {
             case 1:
                 System.out.println("Welcome To Employee Page .....");
-                Login emplogin = new Login();
-                boolean empusrauth  = emplogin.login();
+                DatabaseManager databaseManager = new DatabaseManager();
+                Login login = new Login(databaseManager);
+                boolean empusrauth  = login.login("Employee");
                 System.out.println(empusrauth);
                 break;
             case 2:
                 System.out.println("Welcome To Customer Page .....");
-                Login cuslogin = new Login();
-                boolean cususrauth  = cuslogin.login();
+                DatabaseManager cusdatabaseManager = new DatabaseManager();
+                Login cuslogin = new Login(cusdatabaseManager); 
+                boolean cususrauth  = cuslogin.login("Customer");
                 System.out.println(cususrauth);
                 
                 break;
@@ -47,8 +39,26 @@ class Car_Managemant_System {
         }
     }
 }
+class Employee
+{
+    private int employeeid;
+    private String role;
+    private String name;
 
-class UserCredentials {
+    Employee(int employeeid,String role,String name ){
+        this.employeeid=employeeid;
+        this.role = role;
+        this.name=name;
+    }
+}
+
+interface Credentials {
+    String getUserId();
+
+    String getPassword();
+}
+
+class UserCredentials implements Credentials {
     private String userId;
     private String password;
 
@@ -57,77 +67,107 @@ class UserCredentials {
         this.password = password;
     }
 
+    @Override
     public String getUserId() {
-        return "Manager";
+        return userId;
     }
 
+    @Override
     public String getPassword() {
-        return "password1";
+        return password;
     }
 }
+
 class CustomerCredentials extends UserCredentials {
     public CustomerCredentials(String userId, String password) {
         super(userId, password);
     }
 }
+
 class EmployeeCredentials extends UserCredentials {
     public EmployeeCredentials(String userId, String password) {
         super(userId, password);
     }
 }
 
-class Login{
-    private List<CustomerCredentials> CustomerDatabase;
-    private List<EmployeeCredentials> EmployeeDatabase;
+class DatabaseManager {
+    private List<CustomerCredentials> customerDatabase;
+    private List<EmployeeCredentials> employeeDatabase;
 
     // Constructor
-    public Login() {
-        CustomerDatabase = new ArrayList<>();
-        EmployeeDatabase = new ArrayList<>();
+    public DatabaseManager() {
+        customerDatabase = new ArrayList<>();
+        employeeDatabase = new ArrayList<>();
         // Add some sample data
-        CustomerDatabase.add(new CustomerCredentials("Lokesh", "password1"));
-        CustomerDatabase.add(new CustomerCredentials("Ram", "password2"));
-        CustomerDatabase.add(new CustomerCredentials("Hari", "password3"));
-        EmployeeDatabase.add(new EmployeeCredentials("Manager", "password1"));
-        EmployeeDatabase.add(new EmployeeCredentials("Supervisor", "password2"));
-        EmployeeDatabase.add(new EmployeeCredentials("employee", "password3"));
+        customerDatabase.add(new CustomerCredentials("Lokesh", "password1"));
+        customerDatabase.add(new CustomerCredentials("Ram", "password2"));
+        customerDatabase.add(new CustomerCredentials("Hari", "password3"));
+        employeeDatabase.add(new EmployeeCredentials("Manager", "password1"));
+        employeeDatabase.add(new EmployeeCredentials("Supervisor", "password2"));
+        employeeDatabase.add(new EmployeeCredentials("employee", "password3"));
     }
-    //login
-    public boolean login(){
-            
-            Scanner src = new Scanner(System.in);
-            System.out.println("Enter your UserId.");
-            String Userid = src.nextLine();
-            System.out.println("Enter your Password.");
-            String Password = src.nextLine();
-            boolean isAuthentic = authenticate(Userid, Password);
-            return isAuthentic;
+
+    public List<CustomerCredentials> getCustomerDatabase() {
+        return customerDatabase;
+    }
+
+    public List<EmployeeCredentials> getEmployeeDatabase() {
+        return employeeDatabase;
+    }
+}
+
+class Login {
+    private DatabaseManager databaseManager;
+
+    // Constructor
+    public Login(DatabaseManager databaseManager) {
+        this.databaseManager = databaseManager;
+    }
+
+    // login
+    public boolean login(String role) {
+        Scanner src = new Scanner(System.in);
+        System.out.println(role);
+        System.out.println("Enter your UserId.");
+        String userId = src.nextLine();
+        System.out.println("Enter your Password.");
+        String password = src.nextLine();
+        
+        //src.close();
+        return authenticate(role, userId, password);
+    }
+
+    // auth
+    public boolean authenticate(String role, String enteredUserId, String enteredPassword) {
+        List<? extends Credentials> database;
+
+        // System.out.println("enteredUserId : " + enteredUserId);
+        // System.out.println("enteredPassword : " + enteredPassword);
+        // System.out.println("role : " + role);
+        // System.out.println("Check if the manager and employee ");
+        // System.out.println("employee".equals(role.toLowerCase()));
+        // System.out.println("customer".equals(role.toLowerCase()));
+        // Get the database based on the role
+
+        if ("customer".equals(role.toLowerCase())) {
+            database = databaseManager.getCustomerDatabase();
+           // System.out.println("customer database : " + database.get(0).getUserId());
+        } else if ("employee".equals(role.toLowerCase())) {
+            database = databaseManager.getEmployeeDatabase();
+           // System.out.println("employee database : " + database);
+        } else {
+            throw new IllegalArgumentException("Invalid role");
         }
-    //auth
-    public boolean authenticate(String enteredUserId, String enteredPassword) {
-        for (UserCredentials userCredentials : EmployeeDatabase) {
-            if (userCredentials.getUserId().equals(enteredUserId) && userCredentials.getPassword().equals(enteredPassword)) {
+        // Check if the user exists in the database
+        for (Credentials credentials : database) {
+
+            if (credentials.getUserId().equals(enteredUserId) && credentials.getPassword().equals(enteredPassword)) {
                 // Authentication successful
                 return true;
             }
         }
         // Authentication failed
         return false;
-
-    }
-}
-
-class Employee
-{
-    private int employeeid;
-    private String role;
-    private String name;
-
-    
-    Employee(int employeeid,String role,String name ){
-        this.employeeid=employeeid;
-        this.role = role;
-        this.name=name;
     }
 }
 
@@ -264,11 +304,11 @@ class rentalAgency extends Car{
         
 
     }
-    ArrayList getAvailableCars(){
+    ArrayList<Car> getAvailableCars(){
         return this.listOfAvailableCars;
         
     }
-    ArrayList getRentedCars(){
+    ArrayList<Car> getRentedCars(){
         return this.listOfRentedCars;
     }
 
