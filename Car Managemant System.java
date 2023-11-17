@@ -9,35 +9,79 @@ import java.time.LocalDate;
 class Car_Managemant_System {
     
     public static void main(String[] args) {
-        System.out.println("This Is your Login Page ......\nDo you Want to Continue as :");
-        System.out.println("1. Employee \n2.Customer\n3.Exit ");
-        Scanner src = new Scanner(System.in);
-        int input = src.nextInt();
-        switch (input) {
-            case 1:
-                System.out.println("Welcome To Employee Page .....");
-                DatabaseManager databaseManager = new DatabaseManager();
-                Login login = new Login(databaseManager);
-                boolean empusrauth  = login.login("Employee");
-                System.out.println(empusrauth);
-                break;
-            case 2:
-                System.out.println("Welcome To Customer Page .....");
-                DatabaseManager cusdatabaseManager = new DatabaseManager();
-                Login cuslogin = new Login(cusdatabaseManager); 
-                boolean cususrauth  = cuslogin.login("Customer");
-                System.out.println(cususrauth);
+    DatabaseManager databaseManager = new DatabaseManager();
+
+    System.out.println("This Is your Login Page ......\nDo you Want to Continue as :");
+    System.out.println("1. Employee \n2. Customer\n3. Exit");
+    
+    Scanner src = new Scanner(System.in);
+    int input = src.nextInt();
+
+    switch (input) {
+        case 1:
+            System.out.println("Welcome To Employee Page .....");
+            Login empLogin = new Login(databaseManager);
+            boolean empAuth = empLogin.login("Employee");
+            if (empAuth) {
+                // Sample Employee details
+                Employee employee = new Employee(1, "Manager", "John Doe");
+                System.out.println("Employee ID: " + employee.getEmployeeid());
+                System.out.println("Role: " + employee.getRole());
+                System.out.println("Name: " + employee.getName());
+
+                // Example of adding a new car to inventory
+                CarInventory inventory = new CarInventory("CarX", "MakeX", "ModelX", 2023, "Red", "REG123", true);
+                inventory.AddCar();
+
+                // Example of removing a car from inventory (Only available for managers)
+                inventory.removeCar("Manager", "REG123");
+
+                // Example of searching for a car in inventory
+                Car foundCar = inventory.SearchCar("REG456");
+                if (foundCar != null) {
+                    System.out.println("Car Found: " + foundCar.getName());
+                }
+            } else {
+                System.out.println("Authentication Failed for Employee");
+            }
+            break;
+        case 2:
+            System.out.println("Welcome To Customer Page .....");
+            Login cusLogin = new Login(databaseManager);
+            boolean cusAuth = cusLogin.login("Customer");
+            if (cusAuth) {
+                // Sample Customer details
+                Customer customer = new Customer("Jane Doe", "1234567890");
+                System.out.println("Customer Name: " + customer.getName());
+                System.out.println("Phone Number: " + customer.getphoneNuber());
+
+                // Example of renting a car
+                rentalAgency agency = new rentalAgency("CarY", "MakeY", "ModelY", 2022, "Blue", "REG789", true);
+                //populate the list of available cars
+                agency.getAvailableCars().add(new Car("CarY", "MakeY", "ModelY", 2022, "Blue", "REG789", true));
+                agency.getAvailableCars().add(new Car("CarZ", "MakeZ", "ModelZ", 2021, "Black", "REG456", true));
+                agency.getAvailableCars().add(new Car("CarA", "MakeA", "ModelA", 2020, "White", "REG123", true));
+                agency.getAvailableCars().add(new Car("CarB", "MakeB", "ModelB", 2019, "Red", "REG000", true));
+                agency.getAvailableCars().add(new Car("CarC", "MakeC", "ModelC", 2018, "Green", "REG111", true));
+                //populate the list of rented cars2
+                agency.rentCar(agency.getAvailableCars().get(0));
+
+                // Example of returning a rented car
+                agency.returnCar(agency.getRentedCars().get(0));
                 
-                break;
-            case 3:
-                System.out.println("Thank You For Using Our System");
-                break;
-        
-            default:
-                System.out.println("You are not authenticated");
-                break;
-        }
+            } else {
+                System.out.println("Authentication Failed for Customer");
+            }
+            break;
+        case 3:
+            System.out.println("Thank You For Using Our System");
+            break;
+        default:
+            System.out.println("You are not authenticated");
+            break;
     }
+}
+
 }
 class Employee
 {
@@ -50,6 +94,17 @@ class Employee
         this.role = role;
         this.name=name;
     }
+    //getter and setter properties for employee.
+    int getEmployeeid(){
+        return this.employeeid;
+    }
+    String getRole(){
+        return this.role;
+    }
+    String getName(){
+        return this.name;
+    }
+
 }
 
 interface Credentials {
